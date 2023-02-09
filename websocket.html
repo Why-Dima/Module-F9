@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+    <head>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+        <script language="javascript" type="text/javascript">
+            $(function() {
+            var conn = null;
+            function log(msg) {
+                var control = $('#log');
+                control.html(control.html() + msg + '<br/>');
+                control.scrollTop(control.scrollTop() + 1000);
+            };
+            function connect() {
+                disconnect();
+                var wsUri = (window.location.protocol=='https:'&&'wss://'||'ws://')+window.location.host;
+                conn = new WebSocket(wsUri);
+                log('Connecting...');
+                conn.onopen = function() {
+                    log('Connected.');
+                    update_ui();
+                };
+                conn.onmessage = function(e) {
+                    if (!e.data == ""){
+                        log('Received: ' + e.data);
+                    }
+                };
+                conn.onclose = function() {
+                    log('Disconnected.');
+                    conn = null;
+                    update_ui();
+                };
+            };
+            function disconnect() {
+                if (conn != null) {
+                    log('Disconnecting...');
+                    conn.close();
+                    conn = null;
+                    update_ui();
+                };
+            };
+            function update_ui() {
+                if (conn == null) {
+                    $('#status').text('disconnected');
+                    $('#connect').html('Connect');
+                } else {
+                    $('#status').text('connected (' + conn.protocol + ')');
+                    $('#connect').html('Disconnect');
+                };
+            };
+            $('#connect').click(function() {
+                if (conn == null) {
+                    connect();
+                } else {
+                    disconnect();
+                }
+                update_ui();
+                return false;
+            });
+            
+            $("#send").click(function () {
+                var text = $("#text").val();
+                $.ajax({
+                    url: "http://127.0.0.1:8080/news",
+                    type: "POST",
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: JSON.stringify({ news: text }),
+                    success: (data, status) => {
+                        console.log(status);
+                },
+                error: (result, status, error) => {
+                    console.log(error);
+                },
+            });
+            });
+        });
+        </script>  
+    </head>
+    <body>
+        <h1>Posts</h1>
+        <div>
+            <button id="connect">Connect</button>&nbsp;|&nbsp;Status:
+            <span id="status">disconnected</span>
+        </div>
+        <div id="log" style="width:20em;height:15em;overflow:auto;border:1px solid black">
+        </div>
+        <div>
+            <form id="post" onsubmit="return false;">
+                <input id="text" type="text" />
+                <input id="send" type="button" value="send" />
+            </form>
+        </div>
+    </body>
+</html>
