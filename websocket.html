@@ -68,6 +68,8 @@
                     data: JSON.stringify({ news: text }),
                     success: (data, status) => {
                         console.log(status);
+                        console.log(data);
+                        
                 },
                 error: (result, status, error) => {
                     console.log(error);

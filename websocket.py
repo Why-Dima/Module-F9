@@ -10,7 +10,7 @@ async def post_handler(request):
     async with ClientSession().ws_connect("http://127.0.0.1:8080/") as ws:
         await ws.send_str(data["news"])
         await ws.close()
-    return web.Response(status=200)
+    return web.json_response(data)
 
 
 async def webhandler(request: web.Request):
